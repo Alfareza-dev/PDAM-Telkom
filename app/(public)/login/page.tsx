@@ -4,9 +4,9 @@ import { BASE_API_URL } from "@/global";
 import { storeCookie } from "@/lib/client-cookie";
 import axios from "axios";
 import { useRouter } from "next/navigation";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
-import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, Loader2 } from "lucide-react";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,66 +16,81 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
+  // ✅ Auto redirect kalau sudah login
+  useEffect(() => {
+    const token = document.cookie.includes("token=");
+    if (token) {
+      router.replace("/dashboard");
+    }
+  }, [router]);
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
+
+    if (!email || !password) {
+      toast.warning("Email dan password wajib diisi ⚠️");
+      return;
+    }
+
     setLoading(true);
 
     try {
       const url = `${BASE_API_URL}/app-owners/auth`;
-      const payload = { email, password };
 
-      const { data } = await axios.post(url, payload, {
-        headers: { "Content-Type": "application/json" },
-      });
+      const { data } = await axios.post(
+        url,
+        { email, password },
+        {
+          headers: { "Content-Type": "application/json" },
+        },
+      );
 
       console.log("LOGIN RESPONSE:", data);
 
       // ✅ LOGIN BERHASIL
       if (data.success) {
-        toast.success("Login berhasil 🎉", {
-          autoClose: 1500,
-        });
-
         const owner = data.data;
 
         storeCookie("token", owner.owner_token);
         storeCookie("owner_id", String(owner.id));
         storeCookie("email", owner.email);
 
+        toast.success("Login berhasil 🎉", { autoClose: 1200 });
+
         setTimeout(() => {
           router.replace("/dashboard");
-        }, 1500);
+        }, 1200);
       }
 
-      // ❌ LOGIN GAGAL (VALIDASI API)
+      // ❌ LOGIN GAGAL DARI API
       else {
-        toast.warning(data.message || "Login gagal ❌");
+        toast.error(data.message || "Email atau password salah ❌");
       }
     } catch (error) {
       console.error("LOGIN ERROR:", error);
-
-      // ❌ ERROR SERVER / NETWORK
-      toast.error("Login gagal! Server bermasalah 🚨");
+      toast.error("Server bermasalah 🚨 Coba lagi nanti.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-6 py-16">
-      <ToastContainer />
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-6">
+      <ToastContainer theme="dark" />
 
-      <div className="relative w-full max-w-md rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10 shadow-xl p-8">
-        {/* Glow Accent */}
-        <div className="absolute -top-24 -right-24 w-64 h-64 bg-cyan-400/10 blur-3xl rounded-full" />
+      {/* 🌈 Glow Background */}
+      <div className="absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/20 blur-3xl rounded-full" />
+      <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-indigo-500/20 blur-3xl rounded-full" />
 
-        {/* Header Card */}
+      {/* 🧊 Card */}
+      <div className="relative w-full max-w-md rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-2xl p-8">
+        {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold tracking-wide">
+          <h1 className="text-3xl font-bold tracking-wide text-white">
             PDAM <span className="text-cyan-400">SMART</span>
           </h1>
           <p className="text-sm text-slate-400 mt-1">
-            Sign in to management system
+            Login to management system
           </p>
         </div>
 
@@ -97,7 +112,8 @@ export default function LoginPage() {
                 placeholder="admin@mail.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full rounded-lg bg-slate-900/70 border border-white/10 text-slate-100 placeholder:text-slate-500 pl-10 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition"
+                disabled={loading}
+                className="w-full rounded-lg bg-slate-900/70 border border-white/10 text-slate-100 placeholder:text-slate-500 pl-10 pr-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50"
               />
             </div>
           </div>
@@ -118,8 +134,10 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full rounded-lg bg-slate-900/70 border border-white/10 text-slate-100 placeholder:text-slate-500 pl-10 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition"
+                disabled={loading}
+                className="w-full rounded-lg bg-slate-900/70 border border-white/10 text-slate-100 placeholder:text-slate-500 pl-10 pr-10 py-2.5 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition disabled:opacity-50"
               />
+
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -134,11 +152,17 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-lg bg-cyan-500 hover:brightness-110 active:scale-95 transition text-slate-900 font-semibold py-2.5 shadow-lg shadow-cyan-500/30"
+            className="w-full flex items-center justify-center gap-2 rounded-lg bg-cyan-500 hover:brightness-110 active:scale-95 transition text-slate-900 font-semibold py-2.5 shadow-lg shadow-cyan-500/30 disabled:opacity-60"
           >
+            {loading && <Loader2 className="animate-spin" size={18} />}
             {loading ? "Signing in..." : "Login"}
           </button>
         </form>
+
+        {/* Footer */}
+        <p className="text-xs text-center text-slate-500 mt-6">
+          © 2026 PDAM Smart System
+        </p>
       </div>
     </div>
   );

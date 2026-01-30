@@ -8,12 +8,12 @@ export default function PageWrapper({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname(); // unik per route
+  const pathname = usePathname(); 
 
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={pathname} // unik per page, tidak pakai Math.random()
+        key={pathname} 
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -10 }}
