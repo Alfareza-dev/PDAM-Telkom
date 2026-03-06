@@ -1,24 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
 
-export function middleware(request: NextRequest) {
-  const token = request.cookies.get("token")?.value;
-  const pathname = request.nextUrl.pathname;
+const PUBLIC_PATHS = ["/login"];
+const PROTECTED_PATHS = ["/dashboard"];
 
-  // 🔒 Protect dashboard
-  if (pathname.startsWith("/dashboard")) {
-    if (!token) {
-      return NextResponse.redirect(new URL("/login", request.url));
-    }
+export function middleware(req: NextRequest) {
+  const { pathname } = req.nextUrl;
+
+  const token = req.cookies.get("token")?.value;
+
+  const isPublicPath = PUBLIC_PATHS.some((path) => pathname.startsWith(path));
+
+  const isProtectedPath = PROTECTED_PATHS.some((path) =>
+    pathname.startsWith(path),
+  );
+  if (isProtectedPath && !token) {
+    return NextResponse.redirect(new URL("/login", req.url));
   }
 
-  // ✅ Kalau sudah login, tidak boleh balik ke login
-  if (pathname.startsWith("/login") && token) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
+  // ✅ sudah login tapi akses login
+  if (isPublicPath && token) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
   }
 
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/login"],
+  matcher: ["/login", "/dashboard/:path*"],
 };

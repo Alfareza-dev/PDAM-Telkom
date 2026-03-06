@@ -7,7 +7,7 @@ import {
   Users,
   UserCog,
   FileText,
-  Wallet,
+  User,
   LogOut,
 } from "lucide-react";
 
@@ -33,14 +33,9 @@ const menus = [
     icon: FileText,
   },
   {
-    label: "Bills",
-    href: "/dashboard/bills",
-    icon: Wallet,
-  },
-  {
-    label: "Payments",
-    href: "/dashboard/payments",
-    icon: Wallet,
+    label: "Profile",
+    href: "/dashboard/profile",
+    icon: User,
   },
 ];
 
@@ -59,15 +54,23 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="w-64 min-h-screen bg-slate-900 border-r border-white/10 flex flex-col">
+    <aside className="w-64 min-h-screen bg-slate-950 border-r border-white/5 flex flex-col sticky top-0">
       {/* BRAND */}
-      <div className="px-6 py-5 border-b border-white/10">
-        <h1 className="text-xl font-bold text-cyan-400">PDAM SMART</h1>
-        <p className="text-xs text-slate-400">Management System</p>
+      <div className="px-8 py-10">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-cyan-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+             <LayoutDashboard size={24} className="text-slate-950" />
+          </div>
+          <div>
+            <h1 className="text-xl font-black text-white tracking-tighter italic">PDAM<span className="text-cyan-400">SMART</span></h1>
+            <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest leading-none mt-1">Admin Panel</p>
+          </div>
+        </div>
       </div>
 
       {/* MENU */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 px-4 py-2 space-y-2">
+        <p className="px-4 text-[10px] font-black text-slate-600 uppercase tracking-[0.2em] mb-4">Main Menu</p>
         {menus.map((menu) => {
           const Icon = menu.icon;
           const active = pathname === menu.href;
@@ -76,28 +79,31 @@ export default function Sidebar() {
             <Link
               key={menu.href}
               href={menu.href}
-              className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm transition
+              className={`flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-300 relative group
                 ${
                   active
-                    ? "bg-cyan-500/20 text-cyan-400"
-                    : "text-slate-300 hover:bg-white/5 hover:text-white"
+                    ? "bg-cyan-500/10 text-cyan-400 shadow-[inset_0_0_20px_rgba(6,182,212,0.05)]"
+                    : "text-slate-500 hover:text-white hover:bg-white/5"
                 }`}
             >
-              <Icon size={18} />
+              <Icon size={20} className={`transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`} />
               <span>{menu.label}</span>
+              {active && (
+                <div className="absolute left-0 w-1 h-6 bg-cyan-500 rounded-r-full shadow-[0_0_15px_rgba(6,182,212,0.5)]" />
+              )}
             </Link>
           );
         })}
       </nav>
 
       {/* LOGOUT */}
-      <div className="p-3 border-t border-white/10">
+      <div className="p-6 border-t border-white/5">
         <button
           onClick={handleLogout}
-          className="flex w-full items-center gap-3 px-4 py-2.5 rounded-lg text-sm text-red-400 hover:bg-red-500/10 transition"
+          className="flex w-full items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-red-500/80 hover:text-red-400 hover:bg-red-500/10 transition-all duration-300 group"
         >
-          <LogOut size={18} />
-          Logout
+          <LogOut size={20} className="group-hover:-translate-x-1 transition-transform" />
+          Logout System
         </button>
       </div>
     </aside>
