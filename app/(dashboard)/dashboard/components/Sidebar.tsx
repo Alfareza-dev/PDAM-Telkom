@@ -10,7 +10,8 @@ import {
   User,
   LogOut,
   Menu,
-  X
+  X,
+  Github
 } from "lucide-react";
 import { useState } from "react";
 
@@ -129,8 +130,17 @@ export default function Sidebar() {
           })}
         </nav>
 
-        {/* LOGOUT */}
-        <div className="p-6 border-t border-white/5 mt-auto">
+        {/* LOGOUT & EXTERNAL */}
+        <div className="p-6 border-t border-white/5 mt-auto space-y-3">
+          <a
+            href="https://github.com/Alfareza-dev/PDAM-Telkom"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex w-full items-center gap-3 px-4 py-3 rounded-2xl text-sm font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-all duration-300 group"
+          >
+            <Github size={20} className="group-hover:scale-110 transition-transform" />
+            Open Source Code
+          </a>
           <button
             onClick={handleLogout}
             className="flex w-full items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-red-500/80 hover:text-red-400 hover:bg-red-500/10 transition-all duration-300 group"

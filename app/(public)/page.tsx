@@ -1,4 +1,4 @@
-import { Droplets, Gauge, CreditCard, ShieldCheck } from "lucide-react";
+import { Droplets, Gauge, CreditCard, ShieldCheck, Github } from "lucide-react";
 
 export default function HomePage() {
   return (
@@ -21,7 +21,7 @@ export default function HomePage() {
               tagihan, dan layanan pelanggan secara cepat dan transparan.
             </p>
 
-            <div className="mt-10 flex justify-center gap-4">
+            <div className="mt-10 flex flex-wrap justify-center gap-4">
               <a
                 href="/login"
                 className="px-6 py-3 rounded-lg bg-cyan-500 text-slate-900
@@ -29,6 +29,17 @@ export default function HomePage() {
                            shadow-lg shadow-cyan-500/30"
               >
                 Get Started
+              </a>
+
+              <a
+                href="https://github.com/Alfareza-dev/PDAM-Telkom"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-2 px-6 py-3 rounded-lg border border-white/20
+                           hover:bg-white/5 hover:border-slate-400 transition"
+              >
+                <Github size={20} />
+                View on GitHub
               </a>
 
               <a
