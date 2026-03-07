@@ -10,6 +10,9 @@ type Admin = {
   username: string;
   name: string;
   phone: string;
+  user?: {
+    username: string;
+  };
 };
 
 export default function AdminsPage() {
@@ -37,11 +40,11 @@ export default function AdminsPage() {
     setLoading(true);
     try {
       const res = await api.get(`/admins`, {
-        params: { page, quantity: 10, search }
+        params: { page, quantity: 5, search }
       });
       setAdmins(res.data.data || []);
       const total = res.data.count || 0;
-      setTotalPages(Math.ceil(total / 10) || 1);
+      setTotalPages(Math.ceil(total / 5) || 1);
     } catch (err) {
       console.error(err);
       toast.error("Failed to fetch admins");
@@ -145,18 +148,18 @@ export default function AdminsPage() {
       </div>
 
       {/* Table Container */}
-      <div className="table-container shadow-cyan-500/5">
-        <div className="overflow-x-auto">
+      <div className="w-full bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-lg">
+        <div className="w-full overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="table-header">
-                <th className="px-6 py-5">Profile</th>
-                <th className="px-6 py-5">Username</th>
-                <th className="px-6 py-5">Contact</th>
-                <th className="px-4 py-5 text-right">Actions</th>
+              <tr className="bg-slate-950/50 border-b border-slate-800">
+                <th className="px-6 py-4 text-white font-semibold text-sm">Profile</th>
+                <th className="px-6 py-4 text-white font-semibold text-sm">Username</th>
+                <th className="px-6 py-4 text-white font-semibold text-sm">Contact</th>
+                <th className="px-4 py-4 text-white font-semibold text-sm text-right">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-slate-800/50">
               {loading ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-24 text-center">
@@ -174,22 +177,22 @@ export default function AdminsPage() {
                 </tr>
               ) : (
                 admins.map((admin) => (
-                  <tr key={admin.id} className="table-row group">
-                    <td className="px-6 py-5">
+                  <tr key={admin.id} className="hover:bg-slate-800/50 transition-colors group">
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-slate-800 to-slate-900 border border-white/5 flex items-center justify-center text-slate-400 font-black group-hover:border-cyan-500/30 transition-all">
                           {admin.name.charAt(0)}
                         </div>
-                        <span className="text-slate-200 font-bold tracking-tight">{admin.name}</span>
+                        <span className="text-slate-300 font-bold tracking-tight">{admin.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-5">
+                    <td className="px-6 py-4">
                       <span className="text-cyan-400 font-mono text-sm bg-cyan-500/5 px-2 py-1 rounded-md border border-cyan-500/10">
-                        @{admin.username}
+                        @{admin.user?.username || admin.username || 'Tidak ada data'}
                       </span>
                     </td>
-                    <td className="px-6 py-5 text-slate-400 font-medium">{admin.phone}</td>
-                    <td className="px-6 py-5">
+                    <td className="px-6 py-4 text-slate-400 font-medium">{admin.phone}</td>
+                    <td className="px-6 py-4">
                       <div className="flex justify-end gap-3">
                         <button
                           onClick={() => openEditModal(admin)}
@@ -247,22 +250,24 @@ export default function AdminsPage() {
 
       {/* MODAL SYSTEM */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto animate-in fade-in duration-300">
-          <div className="w-full max-w-md bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-2xl p-10 relative animate-in zoom-in-95 duration-300 overflow-hidden">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-500/5 blur-[60px] rounded-full" />
+        <div className="fixed top-0 left-0 w-screen h-[100dvh] z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm overflow-hidden p-4 sm:p-6 animate-in fade-in duration-300">
+          <div className="relative w-[calc(100%-2rem)] md:w-full mx-4 md:mx-auto max-w-lg bg-[#0f172a] rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-500/5 blur-[60px] rounded-full pointer-events-none" />
             
-            <div className="relative z-10 space-y-8">
-              <div>
-                <h2 className="text-3xl font-black text-white">
-                  {modalMode === "add" && "Register Admin"}
-                  {modalMode === "edit" && "Edit Admin Profile"}
-                  {modalMode === "reset" && "Reset Password"}
-                </h2>
-                <p className="text-slate-500 text-sm mt-2 font-medium">
-                  {modalMode === "reset" ? `Resetting password for @${selectedAdmin?.username}` : "Pastikan seluruh informasi di bawah ini akurat."}
-                </p>
-              </div>
+            {/* Header (Static) */}
+            <div className="relative z-10 p-6 md:p-8 border-b border-slate-800/50">
+              <h2 className="text-3xl font-black text-white">
+                {modalMode === "add" && "Register Admin"}
+                {modalMode === "edit" && "Edit Admin Profile"}
+                {modalMode === "reset" && "Reset Password"}
+              </h2>
+              <p className="text-slate-500 text-sm mt-2 font-medium">
+                {modalMode === "reset" ? `Resetting password for @${selectedAdmin?.username}` : "Pastikan seluruh informasi di bawah ini akurat."}
+              </p>
+            </div>
 
+            {/* Form Body (Scrollable) */}
+            <div className="relative z-10 overflow-y-auto p-6 md:p-8 custom-scrollbar">
               <form onSubmit={handleSubmit} className="space-y-6">
                 {(modalMode === "add" || modalMode === "edit") && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -322,16 +327,16 @@ export default function AdminsPage() {
 
                 <div className="flex gap-4 pt-6">
                   <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="btn-secondary flex-1"
+                     type="button"
+                     onClick={() => setIsModalOpen(false)}
+                     className="btn-secondary flex-1"
                   >
                     Cancel
                   </button>
                   <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="btn-primary flex-[2]"
+                     type="submit"
+                     disabled={isSubmitting}
+                     className="btn-primary flex-[2]"
                   >
                     {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : null}
                     {isSubmitting ? "Processing..." : "Confirm & Save"}

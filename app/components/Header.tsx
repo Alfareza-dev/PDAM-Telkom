@@ -34,7 +34,7 @@ export default function Header() {
           PDAM SMART
         </h1>
 
-        {/* NAVIGATION */}
+        {/* NAVIGATION LINKS */}
         <nav className="hidden md:flex items-center gap-8 text-sm font-medium">
           {["Home", "Services", "About"].map((item) => (
             <Link
@@ -45,11 +45,13 @@ export default function Header() {
               {item}
             </Link>
           ))}
+        </nav>
 
-          {/* LOGIN BUTTON */}
+        {/* LOGIN BUTTON (ALWAYS VISIBLE) */}
+        <div className="flex items-center">
           <Link
             href="/login"
-            className={`px-5 py-2 rounded-full border transition-all duration-300 ${
+            className={`px-5 py-2 rounded-full border transition-all duration-300 font-medium ${
               scrolled
                 ? "bg-cyan-500 border-cyan-500 text-white hover:bg-cyan-600 shadow-lg shadow-cyan-500/20"
                 : "bg-transparent border-cyan-400 text-cyan-400 hover:bg-cyan-400 hover:text-slate-900"
@@ -57,7 +59,7 @@ export default function Header() {
           >
             Login
           </Link>
-        </nav>
+        </div>
       </div>
     </header>
   );

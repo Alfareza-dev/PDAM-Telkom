@@ -38,11 +38,11 @@ export default function ServicesPage() {
     setLoading(true);
     try {
       const res = await api.get(`/services`, {
-        params: { page, quantity: 10, search }
+        params: { page, quantity: 5, search }
       });
       setServices(res.data.data || []);
       const total = res.data.count || 0;
-      setTotalPages(Math.ceil(total / 10) || 1);
+      setTotalPages(Math.ceil(total / 5) || 1);
     } catch (err) {
       console.error(err);
       toast.error("Failed to fetch services");
@@ -152,8 +152,8 @@ export default function ServicesPage() {
       </div>
 
       {/* Table Container */}
-      <div className="table-container shadow-cyan-500/5">
-        <div className="overflow-x-auto">
+      <div className="w-full table-container shadow-cyan-500/5">
+        <div className="w-full overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="table-header">
@@ -258,18 +258,20 @@ export default function ServicesPage() {
 
       {/* MODAL SYSTEM */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 overflow-y-auto animate-in fade-in duration-300">
-          <div className="w-full max-w-md bg-slate-900 border border-white/10 rounded-[2.5rem] shadow-2xl p-10 relative animate-in zoom-in-95 duration-300 overflow-hidden">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-500/5 blur-[60px] rounded-full" />
+        <div className="fixed top-0 left-0 w-screen h-[100dvh] z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm overflow-hidden p-4 sm:p-6 animate-in fade-in duration-300">
+          <div className="relative w-[calc(100%-2rem)] md:w-full mx-4 md:mx-auto max-w-lg bg-[#0f172a] rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-500/5 blur-[60px] rounded-full pointer-events-none" />
             
-            <div className="relative z-10 space-y-8">
-              <div>
-                <h2 className="text-3xl font-black text-white">
-                  {modalMode === "add" ? "Create Service" : "Edit Parameter"}
-                </h2>
-                <p className="text-slate-500 text-sm mt-2 font-medium">Configure the technical and pricing parameters for this water service.</p>
-              </div>
+            {/* Header (Static) */}
+            <div className="relative z-10 p-6 md:p-8 border-b border-slate-800/50">
+              <h2 className="text-3xl font-black text-white">
+                {modalMode === "add" ? "Create Service" : "Edit Parameter"}
+              </h2>
+              <p className="text-slate-500 text-sm mt-2 font-medium">Configure the technical and pricing parameters for this water service.</p>
+            </div>
 
+            {/* Form Body (Scrollable) */}
+            <div className="relative z-10 overflow-y-auto p-6 md:p-8 custom-scrollbar">
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Kategori Layanan</label>
@@ -310,15 +312,15 @@ export default function ServicesPage() {
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Harga per m³ (IDR)</label>
-                  <div className="relative">
-                    <div className="absolute left-5 top-3.5 text-slate-500 font-bold text-sm">Rp</div>
+                  <div className="relative w-full">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium z-10">Rp</span>
                     <input
                       type="number"
                       required
                       min={0}
                       value={formData.price}
                       onChange={(e) => setFormData({ ...formData, price: Number(e.target.value) })}
-                      className="input-premium pl-14"
+                      className="w-full bg-slate-800 border border-slate-700 rounded-lg py-3 pl-12 pr-4 text-white focus:outline-none focus:border-cyan-500 relative z-0"
                     />
                   </div>
                 </div>

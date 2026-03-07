@@ -49,11 +49,11 @@ export default function CustomersPage() {
     setLoading(true);
     try {
       const res = await api.get(`/customers`, {
-        params: { page, quantity: 10, search }
+        params: { page, quantity: 5, search }
       });
       setCustomers(res.data.data || []);
       const total = res.data.count || 0;
-      setTotalPages(Math.ceil(total / 10) || 1);
+      setTotalPages(Math.ceil(total / 5) || 1);
     } catch (err) {
       console.error(err);
       toast.error("Failed to fetch customers");
@@ -206,8 +206,8 @@ export default function CustomersPage() {
       </div>
 
       {/* Table Container */}
-      <div className="table-container shadow-cyan-500/5">
-        <div className="overflow-x-auto">
+      <div className="w-full table-container shadow-cyan-500/5">
+        <div className="w-full overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="table-header">
@@ -319,26 +319,28 @@ export default function CustomersPage() {
 
       {/* MODAL SYSTEM */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 overflow-y-auto animate-in fade-in duration-300">
-          <div className="bg-slate-900 rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 relative animate-in zoom-in-95 duration-300">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-500/5 blur-[60px] rounded-full" />
+        <div className="fixed top-0 left-0 w-screen h-[100dvh] z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm overflow-hidden p-4 sm:p-6 animate-in fade-in duration-300">
+          <div className="relative w-[calc(100%-2rem)] md:w-full mx-4 md:mx-auto max-w-2xl bg-[#0f172a] rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
+            <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-500/5 blur-[60px] rounded-full point-events-none" />
             
-            <div className="relative z-10 space-y-8">
-              <div>
-                <h2 className="text-3xl font-black text-white">
-                  {modalMode === "add" && "Register Customer"}
-                  {modalMode === "edit" && "Edit Customer Data"}
-                  {modalMode === "reset" && "Security Reset"}
-                </h2>
-                <p className="text-slate-500 text-sm mt-2 font-medium">
-                  {modalMode === "reset" ? `Input password baru untuk pelanggan @${selectedCustomer?.username || selectedCustomer?.name}` : "Lengkapi rincian data pelanggan sesuai dengan identitas resmi."}
-                </p>
-              </div>
+            {/* Header (Static) */}
+            <div className="relative z-10 p-6 md:p-8 border-b border-slate-800/50">
+              <h2 className="text-3xl font-black text-white">
+                {modalMode === "add" && "Register Customer"}
+                {modalMode === "edit" && "Edit Customer Data"}
+                {modalMode === "reset" && "Security Reset"}
+              </h2>
+              <p className="text-slate-500 text-sm mt-2 font-medium">
+                {modalMode === "reset" ? `Input password baru untuk pelanggan @${selectedCustomer?.username || selectedCustomer?.name}` : "Lengkapi rincian data pelanggan sesuai dengan identitas resmi."}
+              </p>
+            </div>
 
-              <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+            {/* Form Body (Scrollable) */}
+            <div className="relative z-10 overflow-y-auto p-6 md:p-8 custom-scrollbar">
+              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {(modalMode === "add" || modalMode === "edit") && (
                   <>
-                    <div className="space-y-1.5 text-left">
+                    <div className="space-y-1.5 text-left md:col-span-2">
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
                       <input
                         type="text"
@@ -349,32 +351,33 @@ export default function CustomersPage() {
                         placeholder="Nama Lengkap"
                       />
                     </div>
-                    <div className="flex flex-col md:flex-row gap-4">
-                      <div className="flex-1 space-y-1.5 text-left">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">NIK / No. Pelanggan</label>
-                        <input
-                          type="text"
-                          required
-                          value={formData.customer_number}
-                          onChange={(e) => setFormData({ ...formData, customer_number: e.target.value })}
-                          className="input-premium"
-                          placeholder="3507..."
-                        />
-                      </div>
-                      <div className="flex-1 space-y-1.5 text-left">
-                        <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Phone Number</label>
-                        <input
-                          type="text"
-                          required
-                          value={formData.phone}
-                          onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                          className="input-premium"
-                          placeholder="0812..."
-                        />
-                      </div>
+                    
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">NIK / No. Pelanggan</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.customer_number}
+                        onChange={(e) => setFormData({ ...formData, customer_number: e.target.value })}
+                        className="input-premium"
+                        placeholder="3507..."
+                      />
                     </div>
+                    
+                    <div className="space-y-1.5 text-left">
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Phone Number</label>
+                      <input
+                        type="text"
+                        required
+                        value={formData.phone}
+                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                        className="input-premium"
+                        placeholder="0812..."
+                      />
+                    </div>
+                    
                     {modalMode === "add" && (
-                      <div className="space-y-1.5 text-left">
+                      <div className="space-y-1.5 text-left md:col-span-2">
                         <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Username</label>
                         <input
                           type="text"
@@ -386,7 +389,8 @@ export default function CustomersPage() {
                         />
                       </div>
                     )}
-                    <div className="space-y-1.5 text-left">
+                    
+                    <div className="space-y-1.5 text-left md:col-span-2">
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Service Type</label>
                       <select
                         required
@@ -402,7 +406,8 @@ export default function CustomersPage() {
                         ))}
                       </select>
                     </div>
-                    <div className="space-y-1.5 text-left">
+                    
+                    <div className="space-y-1.5 text-left md:col-span-2">
                       <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Address</label>
                       <textarea
                         required
@@ -416,7 +421,7 @@ export default function CustomersPage() {
                 )}
 
                 {(modalMode === "add" || modalMode === "reset") && (
-                  <div className="space-y-2">
+                  <div className="space-y-2 md:col-span-2">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
                       {modalMode === "reset" ? "New Password" : "Password Akses"}
                     </label>
@@ -431,7 +436,7 @@ export default function CustomersPage() {
                   </div>
                 )}
 
-                <div className="flex gap-4 pt-6">
+                <div className="flex gap-4 pt-4 md:col-span-2">
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}

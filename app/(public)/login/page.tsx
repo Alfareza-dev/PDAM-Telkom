@@ -70,7 +70,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-6">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 px-4 md:px-6">
       {/* Glow */}
       <div className="absolute -top-32 -left-32 w-96 h-96 bg-cyan-500/20 blur-3xl rounded-full" />
       <div className="absolute -bottom-32 -right-32 w-96 h-96 bg-indigo-500/20 blur-3xl rounded-full" />
@@ -78,7 +78,7 @@ export default function LoginPage() {
       {/* Card */}
       <div
         className={`relative w-full max-w-md rounded-2xl border border-white/10
-        bg-white/5 backdrop-blur-xl shadow-2xl p-8 transition-all duration-500
+        bg-white/5 backdrop-blur-xl shadow-2xl p-6 md:p-8 transition-all duration-500
         ${success ? "scale-95 opacity-0" : errorMsg ? "animate-shake" : ""}`}
       >
         {/* Header */}
