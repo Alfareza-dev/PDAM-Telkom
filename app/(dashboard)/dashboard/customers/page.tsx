@@ -118,13 +118,13 @@ export default function CustomersPage() {
     setModalMode("edit");
     setSelectedCustomer(customer);
     setFormData({
-      username: customer.username,
+      username: customer.username ?? "",
       password: "",
-      name: customer.name,
-      phone: customer.phone,
-      customer_number: customer.customer_number,
-      address: customer.address,
-      service_id: String(customer.service_id),
+      name: customer.name ?? "",
+      phone: customer.phone ?? "",
+      customer_number: customer.customer_number ?? "",
+      address: customer.address ?? "",
+      service_id: customer.service_id ? String(customer.service_id) : "",
     });
     setIsModalOpen(true);
   };

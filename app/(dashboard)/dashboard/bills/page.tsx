@@ -161,12 +161,12 @@ export default function BillsPage() {
   const openEdit = (b: Bill) => {
     setSelected(b);
     setEditForm({
-      customer_id: String(b.customer_id),
-      service_id: String(b.service_id),
-      month: String(b.month),
-      year: String(b.year),
-      measurement_number: b.measurement_number,
-      usage_value: String(b.usage_value),
+      customer_id: b.customer_id ? String(b.customer_id) : "",
+      service_id: b.service_id ? String(b.service_id) : "",
+      month: b.month ? String(b.month) : "",
+      year: b.year ? String(b.year) : "",
+      measurement_number: b.measurement_number ?? "",
+      usage_value: b.usage_value !== undefined && b.usage_value !== null ? String(b.usage_value) : "",
     });
     setModal("edit");
   };

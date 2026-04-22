@@ -86,7 +86,7 @@ export default function AdminsPage() {
   const openEditModal = (admin: Admin) => {
     setModalMode("edit");
     setSelectedAdmin(admin);
-    setFormData({ name: admin.name, username: admin.username, password: "", phone: admin.phone });
+    setFormData({ name: admin.name ?? "", username: admin.username ?? "", password: "", phone: admin.phone ?? "" });
     setIsModalOpen(true);
   };
 
