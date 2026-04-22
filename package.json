@@ -9,6 +9,7 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@react-pdf/renderer": "^4.5.1",
     "axios": "^1.13.2",
     "framer-motion": "^12.27.4",
     "js-cookie": "^3.0.5",

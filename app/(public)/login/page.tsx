@@ -4,7 +4,7 @@ import { storeCookie } from "@/lib/client-cookie";
 import api from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useState } from "react";
-import { Eye, EyeOff, User, Lock, Loader2, Check } from "lucide-react";
+import { Eye, EyeOff, User, Lock, Loader2 } from "lucide-react";
 import { toast } from "react-toastify";
 
 export default function LoginPage() {
@@ -15,13 +15,23 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
   // 🔁 Auto redirect kalau sudah login
   useEffect(() => {
     if (document.cookie.includes("token=")) {
-      router.replace("/dashboard");
+      const getCookie = (name: string) => {
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift();
+        return null;
+      };
+      const role = getCookie("role");
+      if (role === "CUSTOMER") {
+        router.replace("/customer/dashboard");
+      } else {
+        router.replace("/dashboard");
+      }
     }
   }, [router]);
 
@@ -47,11 +57,19 @@ export default function LoginPage() {
         if (token) {
           storeCookie("token", token);
           storeCookie("username", username);
-          toast.success("Login successful! Welcome back.");
-          setSuccess(true);
-          setTimeout(() => {
+          
+          try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            storeCookie("role", payload.role);
+            if (payload.role === "CUSTOMER") {
+              router.replace("/customer/dashboard");
+            } else {
+              router.replace("/dashboard");
+            }
+          } catch (err) {
+            console.error("JWT Decode error", err);
             router.replace("/dashboard");
-          }, 800);
+          }
         } else {
           setErrorMsg("JWT Token tidak ditemukan dalam response API /auth");
           toast.error("Token not found in response.");
@@ -79,7 +97,7 @@ export default function LoginPage() {
       <div
         className={`relative w-full max-w-md rounded-2xl border border-white/10
         bg-white/5 backdrop-blur-xl shadow-2xl p-6 md:p-8 transition-all duration-500
-        ${success ? "scale-95 opacity-0" : errorMsg ? "animate-shake" : ""}`}
+        ${errorMsg ? "animate-shake" : ""}`}
       >
         {/* Header */}
         <div className="text-center mb-8">
@@ -162,12 +180,8 @@ export default function LoginPage() {
             transition text-slate-900 font-semibold py-2.5 shadow-lg
             shadow-cyan-500/30 disabled:opacity-60"
           >
-            {success ? (
-              <Check size={18} />
-            ) : loading ? (
-              <Loader2 className="animate-spin" size={18} />
-            ) : null}
-            {success ? "Welcome" : loading ? "Signing in..." : "Login"}
+            {loading ? <Loader2 className="animate-spin" size={18} /> : null}
+            {loading ? "Signing in..." : "Login"}
           </button>
         </form>
 

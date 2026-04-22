@@ -4,54 +4,30 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
-  Users,
-  UserCog,
-  FileText,
-  User,
+  Receipt,
+  Wallet,
   LogOut,
   Menu,
   X,
-  Github,
-  Receipt,
-  Wallet
+  User
 } from "lucide-react";
 import { useState } from "react";
 
 const menus = [
   {
     label: "Dashboard",
-    href: "/dashboard",
+    href: "/customer/dashboard",
     icon: LayoutDashboard,
   },
   {
-    label: "Admin",
-    href: "/dashboard/admins",
-    icon: UserCog,
-  },
-  {
-    label: "Pelanggan",
-    href: "/dashboard/customers",
-    icon: Users,
-  },
-  {
-    label: "Layanan",
-    href: "/dashboard/services",
-    icon: FileText,
-  },
-  {
-    label: "Tagihan",
-    href: "/dashboard/bills",
+    label: "Tagihan Saya",
+    href: "/customer/bills",
     icon: Receipt,
   },
   {
-    label: "Pembayaran",
-    href: "/dashboard/payments",
+    label: "Riwayat Pembayaran",
+    href: "/customer/payments",
     icon: Wallet,
-  },
-  {
-    label: "Profil",
-    href: "/dashboard/profile",
-    icon: User,
   },
 ];
 
@@ -63,16 +39,15 @@ export default function Sidebar() {
   const handleLogout = () => {
     // hapus cookie auth
     document.cookie = "token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    document.cookie =
-      "owner_id=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
-    document.cookie = "email=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie = "role=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
+    document.cookie = "username=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT";
 
     router.replace("/login");
   };
 
   return (
     <>
-      {/* Mobile Top Bar - Hanya tampil ikon hamburger jika sidebar tertutup */}
+      {/* Mobile Top Bar */}
       <div className="md:hidden fixed top-0 left-0 w-full h-16 bg-slate-950/90 backdrop-blur-md border-b border-white/5 z-40 flex items-center px-4">
         {!isSidebarOpen && (
           <button
@@ -82,7 +57,7 @@ export default function Sidebar() {
             <Menu size={24} />
           </button>
         )}
-        <span className="ml-4 text-lg font-black text-white italic">PDAM<span className="text-cyan-400">SMART</span></span>
+        <span className="ml-4 text-lg font-black text-white italic">PORTAL<span className="text-cyan-400">PELANGGAN</span></span>
       </div>
 
       {/* Backdrop */}
@@ -109,13 +84,11 @@ export default function Sidebar() {
           
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#4cd7f6] to-[#06b6d4] flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#003640]">
-                <path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/>
-              </svg>
+              <User size={20} className="text-[#003640]" />
             </div>
             <div>
               <h1 className="text-lg font-black text-white tracking-tight">PDAM SMART</h1>
-              <p className="font-manrope uppercase tracking-widest text-[10px] font-bold text-slate-500">PANEL ADMIN</p>
+              <p className="font-manrope uppercase tracking-widest text-[10px] font-bold text-slate-500">PELANGGAN</p>
             </div>
           </div>
         </div>
@@ -146,15 +119,6 @@ export default function Sidebar() {
 
         {/* LOGOUT & EXTERNAL */}
         <div className="px-4 mt-auto border-t border-white/5 pt-4 space-y-1">
-          <a
-            href="https://github.com/Alfareza-dev/PDAM-Telkom"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-200 hover:bg-slate-900/50 transition-colors group"
-          >
-            <Github size={20} />
-            <span className="font-manrope uppercase tracking-widest text-xs font-bold">Source Code</span>
-          </a>
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 px-4 py-3 text-red-500/80 hover:text-red-400 hover:bg-red-500/10 transition-colors group"

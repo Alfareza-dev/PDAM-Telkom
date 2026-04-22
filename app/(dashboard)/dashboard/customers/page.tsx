@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
-import { Search, Plus, Edit2, Trash2, Key, Loader2, Users, MapPin, Phone, Hash } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, Key, Loader2, Users, MapPin, Phone, Hash, X } from "lucide-react";
 import { toast } from "react-toastify";
+import DeleteConfirmModal from "../components/DeleteConfirmModal";
 
 type Service = {
   id: number;
@@ -12,7 +13,8 @@ type Service = {
 
 type Customer = {
   id: number;
-  username: string;
+  username?: string;
+  user?: { username: string };
   name: string;
   phone: string;
   customer_number: string;
@@ -33,6 +35,7 @@ export default function CustomersPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit" | "reset">("add");
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [deleteCustomer, setDeleteCustomer] = useState<Customer | null>(null);
 
   // Form fields
   const [formData, setFormData] = useState({
@@ -56,7 +59,7 @@ export default function CustomersPage() {
       setTotalPages(Math.ceil(total / 5) || 1);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to fetch customers");
+      toast.error("Gagal memuat data pelanggan.");
     } finally {
       setLoading(false);
     }
@@ -82,14 +85,18 @@ export default function CustomersPage() {
     return () => clearTimeout(delayDebounce);
   }, [search, page]);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this customer?")) return;
+  const handleDelete = async () => {
+    if (!deleteCustomer) return;
+    setIsSubmitting(true);
     try {
-      await api.delete(`/customers/${id}`);
-      toast.success("Customer deleted successfully");
+      await api.delete(`/customers/${deleteCustomer.id}`);
+      toast.success("Pelanggan berhasil dihapus.");
       fetchCustomers();
+      setDeleteCustomer(null);
     } catch (error) {
-      toast.error("Failed to delete customer");
+      toast.error("Gagal menghapus pelanggan.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -143,7 +150,7 @@ export default function CustomersPage() {
     setIsSubmitting(true);
     try {
       if (!formData.service_id && modalMode !== "reset") {
-        toast.warn("Please select a service type");
+        toast.warn("Silakan pilih kategori layanan.");
         setIsSubmitting(false);
         return;
       }
@@ -164,10 +171,10 @@ export default function CustomersPage() {
         await api.patch(`/customers/${selectedCustomer.id}`, { password: formData.password });
       }
       setIsModalOpen(false);
-      toast.success("Successfully saved.");
+      toast.success("Berhasil disimpan.");
       fetchCustomers();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "An error occurred while saving.");
+      toast.error(err.response?.data?.message || "Terjadi kesalahan saat menyimpan.");
     } finally {
       setIsSubmitting(false);
     }
@@ -180,7 +187,7 @@ export default function CustomersPage() {
         <div>
           <h1 className="text-4xl font-extrabold text-white tracking-tight flex items-center gap-3">
             <Users className="text-cyan-400" size={32} />
-            Pelanggan <span className="text-cyan-400">Database</span>
+            Daftar <span className="text-cyan-400">Pelanggan</span>
           </h1>
           <p className="text-slate-400 mt-2 text-lg font-medium">Kelola informasi pelanggan dan kategori layanan mereka.</p>
         </div>
@@ -195,7 +202,7 @@ export default function CustomersPage() {
         <Search className="absolute left-4 top-3.5 text-slate-500 group-focus-within:text-cyan-400 transition-colors" size={20} />
         <input
           type="text"
-          placeholder="Search by NIK, name, or username..."
+          placeholder="Cari berdasarkan NIK, nama, atau username..."
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -206,37 +213,37 @@ export default function CustomersPage() {
       </div>
 
       {/* Table Container */}
-      <div className="w-full table-container shadow-cyan-500/5">
+      <div className="bg-slate-900/40 border border-white/5 backdrop-blur-sm rounded-xl overflow-hidden">
         <div className="w-full overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left min-w-[720px]">
             <thead>
-              <tr className="table-header">
-                <th className="px-6 py-5">No. Pelanggan (NIK)</th>
-                <th className="px-6 py-5">Full Name</th>
-                <th className="px-6 py-5">Account Status</th>
-                <th className="px-6 py-5">Contact</th>
-                <th className="px-4 py-5 text-right">Actions</th>
+              <tr className="text-slate-500 text-xs tracking-wider border-b border-white/5">
+                <th className="px-6 pb-4 pt-5 font-medium">No. Pelanggan (NIK)</th>
+                <th className="px-6 pb-4 pt-5 font-medium">Nama Lengkap</th>
+                <th className="px-6 pb-4 pt-5 font-medium">Username</th>
+                <th className="px-6 pb-4 pt-5 font-medium">Kontak</th>
+                <th className="px-4 pb-4 pt-5 font-medium text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/5">
               {loading ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-24 text-center">
                     <div className="flex flex-col items-center gap-4">
                       <Loader2 className="animate-spin text-cyan-500" size={40} />
-                      <p className="text-slate-500 font-black tracking-[0.2em] text-[10px] uppercase">Retrieving Data...</p>
+                      <p className="text-slate-500 font-black tracking-[0.2em] text-[10px] uppercase">Memuat Data...</p>
                     </div>
                   </td>
                 </tr>
               ) : customers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-24 text-center">
-                    <p className="text-slate-500 font-bold">No customer records found matching your search.</p>
+                    <p className="text-slate-500 font-bold">Tidak ada data pelanggan yang ditemukan.</p>
                   </td>
                 </tr>
               ) : (
                 customers.map((customer) => (
-                  <tr key={customer.id} className="table-row group">
+                  <tr key={customer.id} className="hover:bg-white/5 transition-colors group cursor-pointer">
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-3">
                         <Hash size={16} className="text-slate-600" />
@@ -253,9 +260,13 @@ export default function CustomersPage() {
                       </div>
                     </td>
                     <td className="px-6 py-5">
-                       <span className="text-cyan-400 font-mono text-xs bg-cyan-500/5 px-2 py-1 rounded-md border border-cyan-500/10">
-                        @{customer.username}
-                      </span>
+                      {customer.username || customer.user?.username ? (
+                        <span className="text-cyan-400 font-mono text-xs bg-cyan-500/5 px-2 py-1 rounded-md border border-cyan-500/10">
+                          @{customer.username || customer.user?.username}
+                        </span>
+                      ) : (
+                        <span className="text-slate-600 font-bold">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-5 text-slate-400 font-medium text-sm flex items-center gap-2">
                        <Phone size={12} className="text-slate-600" />
@@ -278,7 +289,7 @@ export default function CustomersPage() {
                           <Key size={16} />
                         </button>
                         <button
-                          onClick={() => handleDelete(customer.id)}
+                          onClick={() => setDeleteCustomer(customer)}
                           className="p-2.5 bg-slate-800/50 hover:bg-red-500/10 text-slate-500 hover:text-red-400 rounded-xl transition-all border border-transparent hover:border-red-500/20"
                           title="Delete Customer"
                         >
@@ -297,7 +308,7 @@ export default function CustomersPage() {
       {/* Pagination */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
         <p className="text-sm font-bold text-slate-600 uppercase tracking-widest">
-          Page <span className="text-white">{page}</span> of <span className="text-white">{totalPages}</span>
+          Halaman <span className="text-white">{page}</span> dari <span className="text-white">{totalPages}</span>
         </p>
         <div className="flex gap-4">
           <button
@@ -305,43 +316,46 @@ export default function CustomersPage() {
             onClick={() => setPage(p => Math.max(1, p - 1))}
             className="btn-secondary px-8 py-2 disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            Previous
+            Sebelumnya
           </button>
           <button
             disabled={page >= totalPages}
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             className="btn-primary px-10 py-2 disabled:opacity-30 disabled:cursor-not-allowed"
           >
-            Next
+            Selanjutnya
           </button>
         </div>
       </div>
 
       {/* MODAL SYSTEM */}
       {isModalOpen && (
-        <div className="fixed top-0 left-0 w-screen h-[100dvh] z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm overflow-hidden p-4 sm:p-6 animate-in fade-in duration-300">
-          <div className="relative w-[calc(100%-2rem)] md:w-full mx-4 md:mx-auto max-w-2xl bg-[#0f172a] rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-500/5 blur-[60px] rounded-full point-events-none" />
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 sm:p-6 transition-opacity duration-300">
+          <div className="w-full max-w-2xl bg-[#0b0f10] border border-slate-800 rounded-2xl shadow-2xl flex flex-col max-h-full overflow-hidden">
             
             {/* Header (Static) */}
-            <div className="relative z-10 p-6 md:p-8 border-b border-slate-800/50">
-              <h2 className="text-3xl font-black text-white">
-                {modalMode === "add" && "Register Customer"}
-                {modalMode === "edit" && "Edit Customer Data"}
-                {modalMode === "reset" && "Security Reset"}
-              </h2>
-              <p className="text-slate-500 text-sm mt-2 font-medium">
-                {modalMode === "reset" ? `Input password baru untuk pelanggan @${selectedCustomer?.username || selectedCustomer?.name}` : "Lengkapi rincian data pelanggan sesuai dengan identitas resmi."}
-              </p>
+            <div className="p-6 md:p-8 border-b border-slate-800 flex items-center justify-between shrink-0">
+              <div>
+                <h2 className="text-2xl md:text-3xl font-black text-white">
+                  {modalMode === "add" && "Tambah Pelanggan"}
+                  {modalMode === "edit" && "Edit Data Pelanggan"}
+                  {modalMode === "reset" && "Reset Password"}
+                </h2>
+                <p className="text-slate-500 text-sm mt-2 font-medium">
+                  {modalMode === "reset" ? `Input password baru untuk ${selectedCustomer?.username ? `@${selectedCustomer.username}` : selectedCustomer?.name}` : "Lengkapi rincian data pelanggan sesuai dengan identitas resmi."}
+                </p>
+              </div>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-500 hover:text-white p-2 rounded-xl hover:bg-white/5 transition shrink-0"><X size={20} /></button>
             </div>
 
-            {/* Form Body (Scrollable) */}
-            <div className="relative z-10 overflow-y-auto p-6 md:p-8 custom-scrollbar">
-              <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            {/* Form Body & Footer */}
+            <form onSubmit={handleSubmit} className="flex flex-col min-h-0 flex-1">
+              <div className="flex-1 overflow-y-auto p-6 md:p-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {(modalMode === "add" || modalMode === "edit") && (
                   <>
                     <div className="space-y-1.5 text-left md:col-span-2">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Name</label>
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nama Lengkap</label>
                       <input
                         type="text"
                         required
@@ -365,14 +379,14 @@ export default function CustomersPage() {
                     </div>
                     
                     <div className="space-y-1.5 text-left">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Phone Number</label>
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Nomor Telepon</label>
                       <input
                         type="text"
                         required
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         className="input-premium"
-                        placeholder="0812..."
+                        placeholder="Nomor Telepon"
                       />
                     </div>
                     
@@ -385,13 +399,13 @@ export default function CustomersPage() {
                           value={formData.username}
                           onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                           className="input-premium"
-                          placeholder="username.pdam"
+                          placeholder="Username"
                         />
                       </div>
                     )}
                     
                     <div className="space-y-1.5 text-left md:col-span-2">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Service Type</label>
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Kategori Layanan</label>
                       <select
                         required
                         value={formData.service_id}
@@ -408,7 +422,7 @@ export default function CustomersPage() {
                     </div>
                     
                     <div className="space-y-1.5 text-left md:col-span-2">
-                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Full Address</label>
+                      <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Alamat Lengkap</label>
                       <textarea
                         required
                         value={formData.address}
@@ -423,7 +437,7 @@ export default function CustomersPage() {
                 {(modalMode === "add" || modalMode === "reset") && (
                   <div className="space-y-2 md:col-span-2">
                     <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">
-                      {modalMode === "reset" ? "New Password" : "Password Akses"}
+                      {modalMode === "reset" ? "Password Baru" : "Password Akses"}
                     </label>
                     <input
                       type="password"
@@ -431,33 +445,49 @@ export default function CustomersPage() {
                       value={formData.password}
                       onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                       className="input-premium"
-                      placeholder="••••••••"
+                      placeholder="Password"
                     />
                   </div>
                 )}
 
-                <div className="flex gap-4 pt-4 md:col-span-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="btn-secondary flex-1"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="btn-primary flex-[2]"
-                  >
-                    {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : null}
-                    {isSubmitting ? "Processing..." : "Confirm & Save Customer"}
-                  </button>
                 </div>
-              </form>
-            </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-6 md:p-8 border-t border-slate-800 flex justify-end gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="btn-secondary px-6"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="btn-primary px-6 flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : null}
+                  {isSubmitting ? "Menyimpan..." : "Simpan Data"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
+
+      {/* DELETE MODAL */}
+      <DeleteConfirmModal
+        isOpen={!!deleteCustomer}
+        onClose={() => setDeleteCustomer(null)}
+        onConfirm={handleDelete}
+        isSubmitting={isSubmitting}
+        description={
+          <>
+            Apakah Anda yakin ingin menghapus pelanggan <span className="text-white font-bold">{deleteCustomer?.name}</span> ({deleteCustomer?.customer_number})? Tindakan ini tidak dapat dibatalkan.
+          </>
+        }
+      />
     </div>
   );
 }

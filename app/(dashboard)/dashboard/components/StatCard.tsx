@@ -9,35 +9,45 @@ interface StatCardProps {
 
 export default function StatCard({ title, value, icon: Icon, color }: StatCardProps) {
   const colorMap = {
-    cyan: "from-cyan-500/10 to-transparent border-cyan-500/20 text-cyan-400",
-    indigo: "from-indigo-500/10 to-transparent border-indigo-500/20 text-indigo-400",
-    emerald: "from-emerald-500/10 to-transparent border-emerald-500/20 text-emerald-400",
-    amber: "from-amber-500/10 to-transparent border-amber-500/20 text-amber-400",
+    cyan: {
+      wrapperHover: "hover:border-cyan-400/50",
+      blurBg: "bg-cyan-400/10 group-hover:bg-cyan-400/20",
+      iconBg: "bg-cyan-400/10",
+      iconText: "text-cyan-400",
+    },
+    indigo: {
+      wrapperHover: "hover:border-indigo-400/50",
+      blurBg: "bg-indigo-400/10 group-hover:bg-indigo-400/20",
+      iconBg: "bg-indigo-400/10",
+      iconText: "text-indigo-400",
+    },
+    emerald: {
+      wrapperHover: "hover:border-emerald-400/50",
+      blurBg: "bg-emerald-400/10 group-hover:bg-emerald-400/20",
+      iconBg: "bg-emerald-400/10",
+      iconText: "text-emerald-400",
+    },
+    amber: {
+      wrapperHover: "hover:border-amber-400/50",
+      blurBg: "bg-amber-400/10 group-hover:bg-amber-400/20",
+      iconBg: "bg-amber-400/10",
+      iconText: "text-amber-400",
+    },
   };
 
-  const bgMap = {
-    cyan: "bg-cyan-500/10 text-cyan-500",
-    indigo: "bg-indigo-500/10 text-indigo-500",
-    emerald: "bg-emerald-500/10 text-emerald-500",
-    amber: "bg-amber-500/10 text-amber-500",
-  }
+  const theme = colorMap[color] || colorMap.cyan;
 
   return (
-    <div className={`relative overflow-hidden rounded-2xl bg-slate-900 border ${colorMap[color]} p-6 transition-all duration-300 hover:scale-[1.02] hover:bg-slate-800/50 group`}>
-      <div className={`absolute -right-4 -bottom-4 opacity-5 transition-transform duration-500 group-hover:scale-125 group-hover:rotate-12`}>
-         <Icon size={120} />
-      </div>
-      
-      <div className="flex items-center gap-4 relative z-10">
-        <div className={`p-3 rounded-xl ${bgMap[color]}`}>
+    <div className={`bg-slate-900/40 border border-white/5 backdrop-blur-sm rounded-xl p-6 relative overflow-hidden group transition-all duration-300 ${theme.wrapperHover}`}>
+      <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-3xl -mr-10 -mt-10 transition-all duration-500 ${theme.blurBg}`}></div>
+      <div className="flex items-center justify-between mb-4 relative z-10">
+        <h3 className="text-slate-400 text-sm font-medium">{title}</h3>
+        <div className={`p-2 rounded-lg ${theme.iconBg} ${theme.iconText}`}>
           <Icon size={24} />
         </div>
-        <div>
-          <p className="text-xs font-medium text-slate-400 uppercase tracking-wider">{title}</p>
-          <h3 className="text-3xl font-bold text-white mt-1 tabular-nums">
-            {typeof value === 'number' ? value.toLocaleString() : value}
-          </h3>
-        </div>
+      </div>
+      <div className="relative z-10">
+        <h2 className="text-3xl font-black text-white">{typeof value === 'number' ? value.toLocaleString('id-ID') : value}</h2>
       </div>
     </div>
   );

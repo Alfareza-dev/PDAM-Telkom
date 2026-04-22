@@ -2,8 +2,9 @@
 
 import { useState, useEffect } from "react";
 import api from "@/lib/api";
-import { Search, Plus, Edit2, Trash2, Loader2, LayoutDashboard, Package, Activity, Inbox } from "lucide-react";
+import { Search, Plus, Edit2, Trash2, Loader2, LayoutDashboard, Package, Activity, Inbox, X } from "lucide-react";
 import { toast } from "react-toastify";
+import DeleteConfirmModal from "../components/DeleteConfirmModal";
 
 type Service = {
   id: number;
@@ -25,6 +26,7 @@ export default function ServicesPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState<"add" | "edit">("add");
   const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [deleteService, setDeleteService] = useState<Service | null>(null);
 
   // Form fields
   const [formData, setFormData] = useState({
@@ -45,7 +47,7 @@ export default function ServicesPage() {
       setTotalPages(Math.ceil(total / 5) || 1);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to fetch services");
+      toast.error("Gagal memuat data layanan.");
     } finally {
       setLoading(false);
     }
@@ -58,14 +60,18 @@ export default function ServicesPage() {
     return () => clearTimeout(delayDebounce);
   }, [search, page]);
 
-  const handleDelete = async (id: number) => {
-    if (!confirm("Are you sure you want to delete this service?")) return;
+  const handleDelete = async () => {
+    if (!deleteService) return;
+    setIsSubmitting(true);
     try {
-      await api.delete(`/services/${id}`);
-      toast.success("Service deleted successfully");
+      await api.delete(`/services/${deleteService.id}`);
+      toast.success("Layanan berhasil dihapus.");
       fetchServices();
+      setDeleteService(null);
     } catch (error) {
-      toast.error("Failed to delete service");
+      toast.error("Gagal menghapus layanan.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -110,10 +116,10 @@ export default function ServicesPage() {
         await api.patch(`/services/${selectedService.id}`, payload);
       }
       setIsModalOpen(false);
-      toast.success("Successfully saved.");
+      toast.success("Berhasil disimpan.");
       fetchServices();
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "An error occurred while saving.");
+      toast.error(err.response?.data?.message || "Terjadi kesalahan saat menyimpan.");
     } finally {
       setIsSubmitting(false);
     }
@@ -126,13 +132,13 @@ export default function ServicesPage() {
         <div>
           <h1 className="text-4xl font-extrabold text-white tracking-tight flex items-center gap-3">
             <Package className="text-cyan-400" size={32} />
-            Layanan <span className="text-cyan-400">Settings</span>
+            Daftar <span className="text-cyan-400">Layanan</span>
           </h1>
           <p className="text-slate-400 mt-2 text-lg font-medium">Konfigurasi kategori pemakaian dan tarif harga per m³.</p>
         </div>
         <button onClick={openAddModal} className="btn-primary">
           <Plus size={18} />
-          Create New Service
+          Tambah Layanan
         </button>
       </div>
 
@@ -141,7 +147,7 @@ export default function ServicesPage() {
         <Search className="absolute left-4 top-3.5 text-slate-500 group-focus-within:text-cyan-400 transition-colors" size={20} />
         <input
           type="text"
-          placeholder="Search service name..."
+          placeholder="Cari nama layanan..."
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -152,24 +158,24 @@ export default function ServicesPage() {
       </div>
 
       {/* Table Container */}
-      <div className="w-full table-container shadow-cyan-500/5">
+      <div className="bg-slate-900/40 border border-white/5 backdrop-blur-sm rounded-xl overflow-hidden">
         <div className="w-full overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left min-w-[560px]">
             <thead>
-              <tr className="table-header">
-                <th className="px-6 py-5">Service Category</th>
-                <th className="px-6 py-5">Usage Range (m³)</th>
-                <th className="px-6 py-5">Price per Unit</th>
-                <th className="px-4 py-5 text-right">Actions</th>
+              <tr className="text-slate-500 text-xs tracking-wider border-b border-white/5">
+                <th className="px-6 pb-4 pt-5 font-medium">Kategori Layanan</th>
+                <th className="px-6 pb-4 pt-5 font-medium">Rentang Penggunaan (m³)</th>
+                <th className="px-6 pb-4 pt-5 font-medium">Harga per Unit</th>
+                <th className="px-4 pb-4 pt-5 font-medium text-right">Aksi</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="divide-y divide-white/5">
               {loading ? (
                 <tr>
                   <td colSpan={4} className="px-6 py-24 text-center">
                     <div className="flex flex-col items-center gap-4">
                       <Loader2 className="animate-spin text-cyan-500" size={40} />
-                      <p className="text-slate-500 font-black tracking-[0.2em] text-[10px] uppercase">Retrieving Data...</p>
+                      <p className="text-slate-500 font-black tracking-[0.2em] text-[10px] uppercase">Memuat Data...</p>
                     </div>
                   </td>
                 </tr>
@@ -178,14 +184,14 @@ export default function ServicesPage() {
                   <td colSpan={4} className="px-6 py-24 text-center">
                     <div className="flex flex-col items-center gap-4 opacity-50">
                        <Inbox size={40} className="text-slate-600" />
-                       <p className="text-slate-500 font-bold">No services configured yet.</p>
+                       <p className="text-slate-500 font-bold">Belum ada layanan yang dikonfigurasi.</p>
                     </div>
                   </td>
                 </tr>
               ) : (
                 services.map((service) => (
-                  <tr key={service.id} className="table-row group">
-                    <td className="px-6 py-5">
+                  <tr key={service.id} className="hover:bg-white/5 transition-colors group cursor-pointer">
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-cyan-500/5 border border-cyan-500/10 flex items-center justify-center text-cyan-400 group-hover:bg-cyan-500/20 transition-all">
                           <Activity size={18} />
@@ -193,7 +199,7 @@ export default function ServicesPage() {
                         <span className="text-slate-100 font-black tracking-tight text-lg">{service.name}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-5">
+                    <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
                          <span className="px-2 py-1 bg-slate-800 rounded-lg text-slate-300 font-bold text-xs">{service.min_usage}</span>
                          <div className="w-4 h-[1px] bg-slate-700" />
@@ -201,7 +207,7 @@ export default function ServicesPage() {
                          <span className="text-[10px] font-black text-slate-600 uppercase tracking-widest ml-1">m³</span>
                       </div>
                     </td>
-                    <td className="px-6 py-5">
+                    <td className="px-6 py-4">
                       <div className="flex flex-col">
                          <span className="text-emerald-400 font-black text-lg">Rp {service.price.toLocaleString("id-ID")}</span>
                          <span className="text-[10px] text-slate-500 font-bold uppercase tracking-widest tracking-widest mt-0.5">fixed rate</span>
@@ -217,7 +223,7 @@ export default function ServicesPage() {
                           <Edit2 size={16} />
                         </button>
                         <button
-                          onClick={() => handleDelete(service.id)}
+                          onClick={() => setDeleteService(service)}
                           className="p-2.5 bg-slate-800/50 hover:bg-red-500/10 text-slate-500 hover:text-red-400 rounded-xl transition-all border border-transparent hover:border-red-500/20"
                           title="Delete Service"
                         >
@@ -236,43 +242,46 @@ export default function ServicesPage() {
       {/* Pagination */}
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4 px-2">
         <p className="text-sm font-bold text-slate-600 uppercase tracking-widest">
-          Page <span className="text-white">{page}</span> of <span className="text-white">{totalPages}</span>
+          Halaman <span className="text-white">{page}</span> dari <span className="text-white">{totalPages}</span>
         </p>
-        <div className="flex gap-4">
+        <div className="flex items-center gap-2">
           <button
             disabled={page === 1}
             onClick={() => setPage(p => Math.max(1, p - 1))}
-            className="btn-secondary px-8 py-2 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 btn-secondary px-4 py-2 disabled:opacity-30 disabled:cursor-not-allowed text-sm"
           >
-            Previous
+            ← Sebelumnya
           </button>
+          <span className="px-3 py-2 text-sm font-bold text-slate-400 bg-slate-900/50 border border-white/5 rounded-xl">{page}</span>
           <button
             disabled={page >= totalPages}
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-            className="btn-primary px-10 py-2 disabled:opacity-30 disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 btn-primary px-4 py-2 disabled:opacity-30 disabled:cursor-not-allowed text-sm"
           >
-            Next
+            Selanjutnya →
           </button>
         </div>
       </div>
 
       {/* MODAL SYSTEM */}
       {isModalOpen && (
-        <div className="fixed top-0 left-0 w-screen h-[100dvh] z-[9999] flex items-center justify-center bg-black/75 backdrop-blur-sm overflow-hidden p-4 sm:p-6 animate-in fade-in duration-300">
-          <div className="relative w-[calc(100%-2rem)] md:w-full mx-4 md:mx-auto max-w-lg bg-[#0f172a] rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-300">
-            <div className="absolute top-0 right-0 w-40 h-40 bg-cyan-500/5 blur-[60px] rounded-full pointer-events-none" />
+        <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 md:p-10 transition-opacity duration-300">
+          <div className="w-full max-w-2xl bg-[#0b0f10] rounded-2xl border border-slate-800 shadow-2xl flex flex-col max-h-[90vh]">
             
             {/* Header (Static) */}
-            <div className="relative z-10 p-6 md:p-8 border-b border-slate-800/50">
-              <h2 className="text-3xl font-black text-white">
-                {modalMode === "add" ? "Create Service" : "Edit Parameter"}
-              </h2>
-              <p className="text-slate-500 text-sm mt-2 font-medium">Configure the technical and pricing parameters for this water service.</p>
+            <div className="p-8 border-b border-slate-800 flex items-center justify-between shrink-0">
+              <div>
+                <h2 className="text-3xl font-black text-white">
+                  {modalMode === "add" ? "Tambah Layanan" : "Edit Layanan"}
+                </h2>
+                <p className="text-slate-500 text-sm mt-2 font-medium">Konfigurasikan parameter teknis dan tarif harga untuk layanan air ini.</p>
+              </div>
+              <button onClick={() => setIsModalOpen(false)} className="text-slate-500 hover:text-white p-2 rounded-xl hover:bg-white/5 transition"><X size={20} /></button>
             </div>
 
-            {/* Form Body (Scrollable) */}
-            <div className="relative z-10 overflow-y-auto p-6 md:p-8 custom-scrollbar">
-              <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Form Body & Footer */}
+            <form onSubmit={handleSubmit} className="flex flex-col min-h-0 overflow-hidden">
+              <div className="flex-1 overflow-y-auto p-6 space-y-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Kategori Layanan</label>
                   <input
@@ -281,13 +290,13 @@ export default function ServicesPage() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     className="input-premium"
-                    placeholder="e.g. Rumah Tangga A"
+                    placeholder="Kategori Layanan"
                   />
                 </div>
 
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Min Usage (m³)</label>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Min Penggunaan (m³)</label>
                     <input
                       type="number"
                       required
@@ -298,7 +307,7 @@ export default function ServicesPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Max Usage (m³)</label>
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Max Penggunaan (m³)</label>
                     <input
                       type="number"
                       required
@@ -325,28 +334,43 @@ export default function ServicesPage() {
                   </div>
                 </div>
 
-                <div className="flex gap-4 pt-6">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="btn-secondary flex-1"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={isSubmitting}
-                    className="btn-primary flex-[2]"
-                  >
-                    {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : null}
-                    {isSubmitting ? "Updating..." : "Confirm Configuration"}
-                  </button>
-                </div>
-              </form>
-            </div>
+              </div>
+
+              {/* Footer */}
+              <div className="p-8 border-t border-slate-800 flex justify-end gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="btn-secondary px-6"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="btn-primary px-6 flex items-center justify-center gap-2"
+                >
+                  {isSubmitting ? <Loader2 className="animate-spin" size={18} /> : null}
+                  {isSubmitting ? "Menyimpan..." : "Simpan"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
+
+      {/* DELETE MODAL */}
+      <DeleteConfirmModal
+        isOpen={!!deleteService}
+        onClose={() => setDeleteService(null)}
+        onConfirm={handleDelete}
+        isSubmitting={isSubmitting}
+        description={
+          <>
+            Apakah Anda yakin ingin menghapus layanan <span className="text-white font-bold">{deleteService?.name}</span>? Tindakan ini tidak dapat dibatalkan.
+          </>
+        }
+      />
     </div>
   );
 }
